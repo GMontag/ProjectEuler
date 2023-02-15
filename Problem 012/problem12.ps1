@@ -1,31 +1,3 @@
-class PrimeSieve {
-    [System.Collections.ArrayList]$sieve
-    [int]$highestPrimeFound
-
-    PrimeSieve() {
-        $this.sieve = [System.Collections.ArrayList](2..100)
-        $this.highestPrimeFound = 1
-    }
-
-    [int]NextPrime([int]$n) {
-        $sieveEnd = $this.sieve[-1]
-        if ($n -gt $sieveEnd) { 
-            $this.sieve.AddRange(($sieveEnd+1)..$n)
-        }
-        if ($n -lt $this.highestPrimeFound) {
-            $index = $this.sieve.IndexOf($n)
-            return $this.sieve[$index + 1]
-        }
-        
-
-    }
-
-    [bool]IsPrime([int]$n) {
-
-    }
-
-}
-
 function IsDivisor {
     param(
         [int]$divisor,
@@ -54,13 +26,6 @@ function CountDivisors {
     return $count
 }
 
-function PrimeFactorization {
-    param(
-        [int]$n
-    )
-
-
-}
 
 function TriangularNumber {
     param(
@@ -75,7 +40,6 @@ $found = $false
 while (-not $found) {
     $triangle = TriangularNumber $i
     $divisorCount = CountDivisors $triangle
-    if ($i % 100 -eq 0) { Write-Output "$triangle`t`t$divisorCount" }
     if ($divisorCount -gt 500) { $found = $true }
     $i++
 }
