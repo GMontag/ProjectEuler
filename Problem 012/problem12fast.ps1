@@ -60,45 +60,64 @@ class PrimeSieve {
         $this.sieve = [System.Collections.ArrayList](2..[PrimeSieve]::sieveSize)
         $this.sievepos = 0
     }
+    
+}
 
-    [System.Collections.ArrayList]PrimeFactorization([int]$n) {
-        $factorization = [System.Collections.ArrayList]@()
+class Factorizer {
+    [System.Collections.Hashtable]$factorizations
+    [PrimeSieve]$sieve
+
+    Factorizer() {
+        $this.factorizations = [System.Collections.Hashtable]@{}
+        $this.sieve = [PrimeSieve]::new()
+    }
+
+    [System.Collections.Hashtable]PrimeFactorization([int]$n) {
+        if ($this.factorizations[$n]) { return $this.factorizations[$n] }
+        $factorization = [System.Collections.Hashtable]@{}
+        $remainder = $n
         $curprime = 2
-        $exponent = 0
-        while ($n -gt 1) {
-            if ($n % $curprime -eq 0) {
-                $n /= $curprime
-                $exponent++
+        while ($remainder -gt 1) {
+            if ($remainder % $curprime -eq 0) {
+                $remainder /= $curprime
+
+                if (-not $factorization[$curprime]) { $factorization[$curprime] = 0}
+                $factorization[$curprime]++
+
+                if ($this.factorizations[$remainder]) {
+                    foreach ($prime in $this.factorizations[$remainder].Keys) {
+                        if (-not $factorization[$prime]) { $factorization[$prime] = 0 }
+                        $factorization[$prime] += $this.factorizations[$remainder][$prime]
+                    }
+                    $remainder = 1
+                }
             } else {
-                if ($exponent -ne 0) { $null = $factorization.Add([System.Collections.ArrayList]@($curprime,$exponent)) }
-                $exponent = 0
-                $curprime = $this.FindNextPrime($curprime)
+                $curprime = $this.sieve.FindNextPrime($curprime)
             }
         }
-        $null = $factorization.Add([System.Collections.ArrayList]@($curprime,$exponent))
+        $this.factorizations[$n] = $factorization
         return $factorization
     }
 
     [int]DivisorCount([int]$n) {
         $primefactors = $this.PrimeFactorization($n)
         $totaldivisors = 1
-        foreach ($factor in $primefactors) { $totaldivisors *= ($factor[1] + 1) }
+        foreach ($exponent in $primefactors.Values) { $totaldivisors *= ($exponent + 1) }
         return $totaldivisors
     }
 }
 
-
 $i = 1
 $found = $false
-$sieve = [PrimeSieve]::new()
+$factorizer = [Factorizer]::new()
 while (-not $found) {
     #Write-Host "Testing triangle number $i" -NoNewline
     if ($i % 2 -eq 0) {
-        $count1 = $sieve.DivisorCount($i/2)
-        $count2 = $sieve.DivisorCount($i+1)
+        $count1 = $factorizer.DivisorCount($i/2)
+        $count2 = $factorizer.DivisorCount($i+1)
     } else {
-        $count1 = $sieve.DivisorCount($i)
-        $count2 = $sieve.DivisorCount(($i+1)/2)
+        $count1 = $factorizer.DivisorCount($i)
+        $count2 = $factorizer.DivisorCount(($i+1)/2)
     }
     $totalcount = $count1 * $count2
     if ($totalcount -gt 500) { $found = $true } else { $i++ }
